@@ -87,48 +87,23 @@ class Anim():
 
     def plot(self, data, line, color):
         if data:
-            gap = timedelta(seconds=3)
-            x = []
-            y = []
-            xx = []
-            yy = []
-            # Plot groups of data not more than 60 seconds apart
+            gap = timedelta(seconds=3)      # for discret graph
+            xx0, xx1 = [], []
+            yy0, yy1 = [], []
+
+            last_dt = None
             for dt, ten in data:
-                xx.append(dt)
-                yy.append(ten)
+                if last_dt and dt <= last_dt + gap:
+                    xx0.append(last_dt)
+                    xx1.append(dt)
+                    yy0.append(last_ten)
+                    yy1.append(ten)
+                last_dt = dt
+                last_ten = ten
 
-            #     if dt <= last_dt + gap:
-            #         x.append(dt)
-            #         y.append(ten)
-            #     else:
-            #         line.set_data(matplotlib.dates.date2num(x), y)
-            #         #ax.plot(, colour, linewidth=width)
-            #         x = [dt]
-            #         y = [ten]
-            #     last_dt = dt
-            # line.set_data(matplotlib.dates.date2num(x), y)
+            xxx = [xx0, xx1]
+            yyy = [yy0, yy1]
 
-            xxx = [xx[:-1], xx[1:]]
-            yyy = [yy[:-1], yy[1:]]
-
-            for i in range(len(xx)-2):
-                try:
-                    if xxx[0][i+1] >= xxx[0][i] + gap:
-                        del xxx[0][i]
-                        del xxx[1][i]
-                        del yyy[0][i]
-                        del yyy[1][i]
-                except:
-                    pass
-
-            # print xxx, '@@@@@@@@'
-            # print yyy, '@@@@@@@@'
-            # xxx = [[ 1.,  2.,  2.,  5.],
-            #  [ 1.,  2.,  3.,  5.]]
-            # yyy = [[ 0.,  1.,  2.,  5.],
-            #  [ 1.,  2.,  3.,  6.]]                        
-            # line.set_data(xxx, yyy)
-            # line.set_data(matplotlib.dates.date2num(xxx), yyy)
             self.ax.plot(matplotlib.dates.date2num(xxx), yyy, linewidth=2, color=color)
 
     def animate(self):
@@ -170,15 +145,6 @@ class Anim():
         gap = timedelta(seconds=3)
         for antenna, entries in data.items():
             data[antenna] = [[dt, count] for dt, count in entries if dt >= not_before]
-            # last_dt = 0
-            # a_data = []
-            # for dt, count in entries:
-            #     if dt >= not_before:
-            #         if last_dt and dt - last_dt >= gap:
-            #             self.plot(list(a_data),  self.line1, 'cry'[int(antenna)-1])     # Antenna 1
-            #             a_data = []
-            #         a_data.append([dt, count])
-            #         last_dt = dt
 
         self.plot(data['1'],  self.line1, 'c')     # Antenna 1
         self.plot(data['2'],  self.line2, 'r')     # Antenna 2
