@@ -15,6 +15,7 @@ import csv
 
 
 TIME_WINDOW = 3     # minutes
+# TIME_WINDOW = 0.4     # minutes
 
 class Anim():
     """
@@ -59,13 +60,13 @@ class Anim():
 
         plt.subplots_adjust(left=0.1, bottom=0.28, right=0.9, top=0.9, wspace=0, hspace=0)
 
-        self.ax_temp =      plt.axes([0.1, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_temp =      plt.axes([0.1, 0.08, 0.2, 0.06],  axisbg=self.axisbg)
         self.ax_time =      plt.axes([0.18, 0.08, 0.2, 0.06], axisbg=self.axisbg)
         self.ax_overdrive = plt.axes([0.24, 0.08, 0.2, 0.06], axisbg=self.axisbg)
         self.ax_cycles =    plt.axes([0.31, 0.08, 0.2, 0.06], axisbg=self.axisbg)
         self.ax_drum =      plt.axes([0.36, 0.08, 0.2, 0.06], axisbg=self.axisbg)
         self.ax_belt =      plt.axes([0.44, 0.08, 0.2, 0.06], axisbg=self.axisbg)
-        self.ax_image =     plt.axes([0.6, -0.01, 0.3, 0.2], axisbg=self.axisbg)
+        self.ax_image =     plt.axes([0.6, -0.01, 0.3, 0.2],  axisbg=self.axisbg)
 
         self.tx_temp = self.ax_temp.text(0,0, "Temp", color="w", transform=self.ax_temp.transAxes, bbox={"pad" : 10, "ec" : "w", "fc" : self.axisbg})
         self.tx_time = self.ax_time.text(0,0, "Time", color="w", transform=self.ax_time.transAxes, bbox={"pad" : 10, "ec" : "w", "fc" : self.axisbg})
@@ -84,28 +85,53 @@ class Anim():
         plt.show()
 
 
-    def plot(self, data, line):
+    def plot(self, data, line, color):
         if data:
-            last_dt = data[0][0]
-            gap = timedelta(seconds=10)
+            gap = timedelta(seconds=3)
             x = []
             y = []
+            xx = []
+            yy = []
             # Plot groups of data not more than 60 seconds apart
             for dt, ten in data:
-                if dt <= last_dt + gap:
-                    x.append(dt)
-                    y.append(ten)
-                else:
-                    line.set_data(matplotlib.dates.date2num(x), y)
-                    #ax.plot(, colour, linewidth=width)
-                    x = [dt]
-                    y = [ten]
-                last_dt = dt
-            line.set_data(matplotlib.dates.date2num(x), y)
+                xx.append(dt)
+                yy.append(ten)
 
+            #     if dt <= last_dt + gap:
+            #         x.append(dt)
+            #         y.append(ten)
+            #     else:
+            #         line.set_data(matplotlib.dates.date2num(x), y)
+            #         #ax.plot(, colour, linewidth=width)
+            #         x = [dt]
+            #         y = [ten]
+            #     last_dt = dt
+            # line.set_data(matplotlib.dates.date2num(x), y)
+
+            xxx = [xx[:-1], xx[1:]]
+            yyy = [yy[:-1], yy[1:]]
+
+            for i in range(len(xx)-2):
+                try:
+                    if xxx[0][i+1] >= xxx[0][i] + gap:
+                        del xxx[0][i]
+                        del xxx[1][i]
+                        del yyy[0][i]
+                        del yyy[1][i]
+                except:
+                    pass
+
+            # print xxx, '@@@@@@@@'
+            # print yyy, '@@@@@@@@'
+            # xxx = [[ 1.,  2.,  2.,  5.],
+            #  [ 1.,  2.,  3.,  5.]]
+            # yyy = [[ 0.,  1.,  2.,  5.],
+            #  [ 1.,  2.,  3.,  6.]]                        
+            # line.set_data(xxx, yyy)
+            # line.set_data(matplotlib.dates.date2num(xxx), yyy)
+            self.ax.plot(matplotlib.dates.date2num(xxx), yyy, linewidth=2, color=color)
 
     def animate(self):
-        self.num_cycles +=1 #counting the number of frames
         # Read in the CSV file
         data = collections.defaultdict(list)
         fields = ["TimeStamp", "ReadCount", "Antenna", "Protocol", "RSSI", "EPC", "Temp", "Ten", "Powr", "Unpowr", "Inf"]
@@ -115,6 +141,8 @@ class Anim():
             csv_input = csv.DictReader(f_input, skipinitialspace=True, fieldnames=fields)
             header = next(csv_input)
             # Separate the rows based on the Antenna field
+            antenna = 5
+            self.num_cycles = 0
             for row in csv_input:
                 try:
                     data[row['Antenna']].append([self.stime(row['TimeStamp']), self.rten(row['Ten']) ])
@@ -122,16 +150,39 @@ class Anim():
                 except:
                     pass
 
-        # Drop any data points more than 1.5 mins older than the last entry
-        latest_dt = data[row['Antenna']][-1][0]     # Last entry
+                if antenna != row['Antenna']:
+                    if antenna > row['Antenna']:
+                        self.num_cycles +=1 #counting the number of frames
+                    antenna = row['Antenna']
+
+            f_input.close()
+            
+        # Drop any data points more than TIME_WINDOW mins older than the last entry
+        for i in range(1, 100):
+            try:
+                latest_dt = data[row['Antenna']][-i][0]     # Last entry
+                break
+            except:
+                continue
+
         not_before = latest_dt - timedelta(minutes=TIME_WINDOW)
 
+        gap = timedelta(seconds=3)
         for antenna, entries in data.items():
             data[antenna] = [[dt, count] for dt, count in entries if dt >= not_before]
+            # last_dt = 0
+            # a_data = []
+            # for dt, count in entries:
+            #     if dt >= not_before:
+            #         if last_dt and dt - last_dt >= gap:
+            #             self.plot(list(a_data),  self.line1, 'cry'[int(antenna)-1])     # Antenna 1
+            #             a_data = []
+            #         a_data.append([dt, count])
+            #         last_dt = dt
 
-        self.plot(data['1'],  self.line2)     # Antenna 1
-        self.plot(data['2'],  self.line1)     # Antenna 2
-        self.plot(data['3'],  self.line3)     # Antenna 3
+        self.plot(data['1'],  self.line1, 'c')     # Antenna 1
+        self.plot(data['2'],  self.line2, 'r')     # Antenna 2
+        self.plot(data['3'],  self.line3, 'y')     # Antenna 3
 
         #Filling the text boxes
         self.tx_temp.set_text(u"Temperature\n   {temp:.2f} °F".format(temp=self.deg2F(temp)))
@@ -142,7 +193,7 @@ class Anim():
         self.tx_drum.set_text("Drum Speed\n {}".format('   -----------') )
         self.tx_belt.set_text("Belt Speed\n {sp:.2f} (ft/s)".format(sp=23.1234) )
         #Todo: setting the limits correctly, depending on the user's need
-        self.ax.set_ylim([0,16])     
+        self.ax.set_ylim([-100,16])     
         self.ax.set_xlim([matplotlib.dates.date2num(not_before), matplotlib.dates.date2num(latest_dt)])
         #Update the canvas
         self.fig.canvas.draw()

@@ -12,14 +12,14 @@ TENSION_RANGE = [90, 450]
 
 read_count = 100
 data_number = random.randint(DATA_NUMBER_RANGE[0], DATA_NUMBER_RANGE[1])
-antenna_number = 1
+antenna_number = 0
 
-with open('./SensorLogAllAntennaTest.csv', 'a') as f1:
-    while(True):
+while(True):
+    with open('./SensorLogAllAntennaTest.csv', 'a') as f1:
         interval = random.randint(INTERVAL_RANGE[0], INTERVAL_RANGE[1])
         sleep(interval / 1000.)
 
-        time_stamp = datetime.now().strftime("%H:%M:%S")
+        time_stamp = datetime.now().strftime("%m/%d/%Y %H:%M:%S.%f")
         read_count += 1
         temperature = random.randint(TEMPERATURE_RANGE[0], TEMPERATURE_RANGE[1])
         tension = random.randint(TENSION_RANGE[0], TENSION_RANGE[1])
@@ -30,7 +30,9 @@ with open('./SensorLogAllAntennaTest.csv', 'a') as f1:
         else:               # switch to another antenna
             antenna_number = (antenna_number+1) % 3
             data_number = random.randint(DATA_NUMBER_RANGE[0], DATA_NUMBER_RANGE[1])
+            sleep(3)
 
-        record = "{}, {}, {}, GEN2, -5, E036112D912508B3, {}, {}, 0, 3.38,  (Infinity%)" \
-            .format(time_stamp, read_count, antenna_number, temperature, tension)
+        record = "{}, {}, {}, GEN2, -5, E036112D912508B3, {}, {}, 0, 3.38,  (Infinity%)," \
+            .format(time_stamp, read_count, antenna_number+1, temperature, tension)
         f1.write(record + os.linesep)
+        f1.close()
