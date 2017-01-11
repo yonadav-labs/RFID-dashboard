@@ -111,7 +111,7 @@ class Anim():
         fields = ["TimeStamp", "ReadCount", "Antenna", "Protocol", "RSSI", "EPC", "Temp", "Ten", "Powr", "Unpowr", "Inf"]
         temp = ""
         # the complete file is read in, which might be a problem once the file gets very large
-        with open('SensorLogFiletest.csv') as f_input:
+        with open('SensorLogAllAntennaTest.csv') as f_input:
             csv_input = csv.DictReader(f_input, skipinitialspace=True, fieldnames=fields)
             header = next(csv_input)
             # Separate the rows based on the Antenna field
