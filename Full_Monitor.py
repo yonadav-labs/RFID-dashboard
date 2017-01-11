@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Oct  5 08:12:41 2016
-
-@author: julchak
-"""
-
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -13,9 +7,7 @@ from datetime import datetime, timedelta
 import collections
 import csv
 
-
 TIME_WINDOW = 3     # minutes
-# TIME_WINDOW = 0.4     # minutes
 
 class Anim():
     """
@@ -54,10 +46,6 @@ class Anim():
         initialx = [self.stime("09/28/2016 17:34:28.967"), self.stime("09/28/2016 17:34:29.716")]
         initialy = [0, 0]
 
-        self.line1, = self.ax.plot(matplotlib.dates.date2num(initialx), initialy, color="c", linewidth=2)
-        self.line2, = self.ax.plot(matplotlib.dates.date2num(initialx), initialy, color="r", linewidth=2)
-        self.line3, = self.ax.plot(matplotlib.dates.date2num(initialx), initialy, color="y", linewidth=2)
-
         plt.subplots_adjust(left=0.1, bottom=0.28, right=0.9, top=0.9, wspace=0, hspace=0)
 
         self.ax_temp =      plt.axes([0.1, 0.08, 0.2, 0.06],  axisbg=self.axisbg)
@@ -75,6 +63,7 @@ class Anim():
         self.tx_drum = self.ax_drum.text(0,0, "Drum", color="w", transform=self.ax_drum.transAxes, bbox={"pad" : 10, "ec" : "w", "fc" : self.axisbg})
         self.tx_belt = self.ax_belt.text(0,0, "Belt", color="w", transform=self.ax_belt.transAxes, bbox={"pad" : 10, "ec" : "w", "fc" : self.axisbg})
 
+        self.ax.plot(matplotlib.dates.date2num(initialx), initialy, color="c", linewidth=2)
         self.ax_image.imshow(mpimg.imread('logo.jpg'))
         self.ax_image.tick_params(axis='x',which='both',bottom='off', top='off',labelbottom='off')
         self.ax_image.tick_params(axis='y',which='both',left='off', right='off',labelleft='off')
@@ -85,7 +74,7 @@ class Anim():
         plt.show()
 
 
-    def plot(self, data, line, color):
+    def plot(self, data, color):
         if data:
             gap = timedelta(seconds=3)      # for discret graph
             xx0, xx1 = [], []
@@ -146,9 +135,9 @@ class Anim():
         for antenna, entries in data.items():
             data[antenna] = [[dt, count] for dt, count in entries if dt >= not_before]
 
-        self.plot(data['1'],  self.line1, 'c')     # Antenna 1
-        self.plot(data['2'],  self.line2, 'r')     # Antenna 2
-        self.plot(data['3'],  self.line3, 'y')     # Antenna 3
+        self.plot(data['1'], 'c')     # Antenna 1
+        self.plot(data['2'], 'r')     # Antenna 2
+        self.plot(data['3'], 'y')     # Antenna 3
 
         #Filling the text boxes
         self.tx_temp.set_text(u"Temperature\n   {temp:.2f} °F".format(temp=self.deg2F(temp)))
@@ -163,7 +152,6 @@ class Anim():
         self.ax.set_xlim([matplotlib.dates.date2num(not_before), matplotlib.dates.date2num(latest_dt)])
         #Update the canvas
         self.fig.canvas.draw()
-
 
     def deg2F(self,deg):
         return float(deg) * 9./5. + 32. 
