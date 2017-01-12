@@ -8,6 +8,7 @@ import collections
 import csv
 
 TIME_WINDOW = 3     # minutes
+DISTANCES = [40.4, 40.4, 103.1]
 
 class Anim():
     """
@@ -73,7 +74,6 @@ class Anim():
         self.timer.start()
         plt.show()
 
-
     def plot(self, data, color):
         if data:
             gap = timedelta(seconds=3)      # for discret graph
@@ -107,14 +107,28 @@ class Anim():
             # Separate the rows based on the Antenna field
             antenna = 5
             self.num_cycles = 0
+            first_timestamp = 0
+            min_y, max_y = 100000, 0
+
             for row in csv_input:
                 try:
                     data[row['Antenna']].append([self.stime(row['TimeStamp']), self.rten(row['Ten']) ])
                     temp= row['Temp']
                 except:
                     pass
+                # get min and max range of tension
+                if min_y > self.rten(row['Ten']):
+                    min_y = self.rten(row['Ten'])
+                elif max_y < self.rten(row['Ten']):
+                    max_y = self.rten(row['Ten'])
 
                 if antenna != row['Antenna']:
+                    # calculate belt speed
+                    if first_timestamp:
+                        period = (self.stime(row['TimeStamp']) - first_timestamp).total_seconds()
+                        sp = DISTANCES[int(antenna)-1] / period                    
+                    first_timestamp = self.stime(row['TimeStamp'])
+                    # calculate # of cycles
                     if antenna > row['Antenna']:
                         self.num_cycles +=1 #counting the number of frames
                     antenna = row['Antenna']
@@ -143,12 +157,12 @@ class Anim():
         self.tx_temp.set_text(u"Temperature\n   {temp:.2f} °F".format(temp=self.deg2F(temp)))
         self.tx_time.set_text("   Time\n{}".format(datetime.now().strftime("%H:%M:%S")))
         self.tx_overdrive.set_text("Overdrive\n   ---------")
-        #Todo: how do you calculate this?
         self.tx_cycles.set_text("Cyles\n {cyles}".format(cyles=self.num_cycles)) 
         self.tx_drum.set_text("Drum Speed\n {}".format('   -----------') )
-        self.tx_belt.set_text("Belt Speed\n {sp:.2f} (ft/s)".format(sp=23.1234) )
+        #Todo: how do you calculate this?
+        self.tx_belt.set_text("Belt Speed\n {sp:.2f} (ft/s)".format(sp=sp) )
         #Todo: setting the limits correctly, depending on the user's need
-        self.ax.set_ylim([-100,16])     
+        self.ax.set_ylim([int(min_y)-3, int(max_y)+3])     
         self.ax.set_xlim([matplotlib.dates.date2num(not_before), matplotlib.dates.date2num(latest_dt)])
         #Update the canvas
         self.fig.canvas.draw()

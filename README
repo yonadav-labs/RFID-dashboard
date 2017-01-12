@@ -14,22 +14,18 @@ We have 3 antenna in our test. Each time the sensor comes within range of the an
 The purpose of this program is to take this data and display it in a way that provides the user with a simple, useful visual readout. The screen includes the following:
 	1.	(Have a working version of this) A graph which shows the last 3 minutes of tension vs. time data (not showing data beyond 3 minutes before). The Y axis should be to a set scale. There should be a title on the top of the graph and the y axis. The x axis should have date/time labels for each gridline. The graph line should be connected between points read in the past 3 seconds (however we don’t want to see a line be interpolated between antenna 1 and antenna 2 values, the 3 second rule should prohibit this). The graph line should be a different color for each different antenna. There are null value sets which sometimes come in – these data sets do not have numbers in the tension location in the data set (item 8 in each data set), these are to be ignored. All the tension values must be multiplied by a constant inputted slope and then have a constant inputted gain added to it (converting it from the input unit to tension in lbs).
 	2.	The current time (from the computer).
-3.	The cycle count – this is meant to increment starting at 0, and increasing by 1 each time the sensor has passed all 3 antenna. 
+	3.	The cycle count – this is meant to increment starting at 0, and increasing by 1 each time the sensor has passed all 3 antenna. 
 	4.	The current temperature read from the sensor.
-5.	The speed of the belt – to get this I will have a set, constant distance entered into the program (the distance between Antenna 1 and 3), and want to take the time difference between the readings from these 2 antenna. Now, where each of these readings comes in a group of data sets, I would like to take the FIRST time reading from antenna 1 and subtract it from the FIRST time reading from antenna 3, use this difference in minutes and divide the constant distance input by this value (let me know if this is unclear).
+	5.	The speed of the belt – to get this I will have a set, constant distance entered into the program (the distance between Antenna 1 and 3), and want to take the time difference between the readings from these 2 antenna. Now, where each of these readings comes in a group of data sets, I would like to take the FIRST time reading from antenna 1 and subtract it from the FIRST time reading from antenna 3, use this difference in minutes and divide the constant distance input by this value (let me know if this is unclear).
 
-distance - feet
-speed - feet / sec
+	distance - feet
+	speed - feet / sec
 
 	6.	Company Logo in the bottom corner.
 	7. Box with "--" in it labeled "Overdrive"
 	8. Box with "--" in it labeled "Drum Speed"
+	9. Customized interval
 
 In this Dropbox link ( https://www.dropbox.com/sh/3aljfltmlufofsh/AAChzCasEpiMiy3Cjdjh6nSWa?dl=0 ) you will find a sample log file, and two different python programs (I had help from the online community on these). “ShowConveyorDisplay.py” is the most reliable at the moment, however does not display as much data as I would like. “Full Monitor Trial 2.py” adds in boxes for temperature, time, overdrive, number of cycles and a logo, however has issues in graphing properly and with the cycle count (see screenshots of each also in the Dropbox folder).
 
 Let me know your thoughts on this project and if you think you would be able to take it up and successfully work through it in a timely manner. I will say, I have concern with your ability to test it as you will not have access to a live-updating CSV file - let me know if you think this will be a problem and if you have a way to test this.
-
-
-
-
-Customized interval
