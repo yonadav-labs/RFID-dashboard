@@ -12,7 +12,7 @@ TENSION_RANGE = [90, 250]
 
 read_count = 100
 data_number = random.randint(DATA_NUMBER_RANGE[0], DATA_NUMBER_RANGE[1])
-antenna_number = 0
+antenna_number = 1
 
 while(True):
     with open('./SensorLog.csv', 'a') as f1:
@@ -29,11 +29,11 @@ while(True):
             pass
         else:               # switch to another antenna
             # antenna_number = (antenna_number+1) % 3
-            antenna_number = random.randint(1, 3)
+            antenna_number = 1#random.randint(1, 3)
             data_number = random.randint(DATA_NUMBER_RANGE[0], DATA_NUMBER_RANGE[1])
             sleep(1.1)
 
         record = "{}, {}, {}, GEN2, -5, E036112D912508B3, {}, {}, 0, 3.38,  (Infinity%)," \
-            .format(time_stamp, read_count, antenna_number+1, temperature, tension)
+            .format(time_stamp, read_count, antenna_number, temperature, tension)
         f1.write(record + os.linesep)
         f1.close()
