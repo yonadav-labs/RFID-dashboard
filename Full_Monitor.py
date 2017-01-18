@@ -20,8 +20,8 @@ class Anim():
     """
     def __init__(self):
 
-        self.offset = 16.
-        self.slope = -.2081
+        self.offset = -167.851
+        self.slope = 1.5351
 
         self.num_cycles = 0
 
@@ -39,7 +39,7 @@ class Anim():
         #self.framenumber = plt.figtext(0.9, .9, "0",  color='w')
         self.ax.grid(True, color='w')
         plt.ylabel('Tension (lb)', color='w', fontsize=20)
-        plt.title('Integrated Intelligece Monitor', color='w', fontsize=26)
+        plt.title('Integrated Intelligence Monitor', color='w', fontsize=26)
 
         self.ax.tick_params(axis='y', colors='w')
         self.ax.tick_params(axis='x', colors='w')
@@ -50,11 +50,11 @@ class Anim():
         plt.subplots_adjust(left=0.1, bottom=0.28, right=0.9, top=0.9, wspace=0, hspace=0)
 
         self.ax_temp =      plt.axes([0.1, 0.08, 0.2, 0.06],  axisbg=self.axisbg)
-        self.ax_time =      plt.axes([0.18, 0.08, 0.2, 0.06], axisbg=self.axisbg)
-        self.ax_overdrive = plt.axes([0.24, 0.08, 0.2, 0.06], axisbg=self.axisbg)
-        self.ax_cycles =    plt.axes([0.31, 0.08, 0.2, 0.06], axisbg=self.axisbg)
-        self.ax_drum =      plt.axes([0.36, 0.08, 0.2, 0.06], axisbg=self.axisbg)
-        self.ax_belt =      plt.axes([0.44, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_time =      plt.axes([0.19, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_belt =      plt.axes([0.26, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_cycles =    plt.axes([0.343, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_drum =      plt.axes([0.4, 0.08, 0.2, 0.06], axisbg=self.axisbg)
+        self.ax_overdrive = plt.axes([0.485, 0.08, 0.2, 0.06], axisbg=self.axisbg)
         self.ax_image =     plt.axes([0.6, -0.01, 0.3, 0.2],  axisbg=self.axisbg)
 
         self.tx_temp = self.ax_temp.text(0,0, "Temp", color="w", transform=self.ax_temp.transAxes, bbox={"pad" : 10, "ec" : "w", "fc" : self.axisbg})
@@ -70,7 +70,7 @@ class Anim():
         self.ax_image.tick_params(axis='y',which='both',left='off', right='off',labelleft='off')
         [self.ax_image.spines[wh].set_color("#5998ff") for wh in ['bottom', 'top', 'left', 'right']]
 
-        self.timer = self.fig.canvas.new_timer(interval=250, callbacks=[(self.animate, [], {})])
+        self.timer = self.fig.canvas.new_timer(interval=1000, callbacks=[(self.animate, [], {})])
         self.timer.start()
         plt.show()
 
@@ -101,7 +101,7 @@ class Anim():
         fields = ["TimeStamp", "ReadCount", "Antenna", "Protocol", "RSSI", "EPC", "Temp", "Ten", "Powr", "Unpowr", "Inf"]
         temp = ""
         # the complete file is read in, which might be a problem once the file gets very large
-        with open('SensorLogAllAntennaTest.csv') as f_input:
+        with open('SensorLog.csv') as f_input:
             csv_input = csv.DictReader(f_input, skipinitialspace=True, fieldnames=fields)
             header = next(csv_input)
             # Separate the rows based on the Antenna field
@@ -112,29 +112,32 @@ class Anim():
 
             for row in csv_input:
                 try:
-                    data[row['Antenna']].append([self.stime(row['TimeStamp']), self.rten(row['Ten']) ])
-                    temp= row['Temp']
+                    ten = float(row['Ten'])
+                    data[row['Antenna']].append([self.stime(row['TimeStamp']), self.rten(ten) ])
+                    temp = float(row['Temp'])
+                    # get min and max range of tension
+                    if min_y > self.rten(row['Ten']):
+                        min_y = self.rten(row['Ten'])
+                    elif max_y < self.rten(row['Ten']):
+                        max_y = self.rten(row['Ten'])
+
+                    if antenna != row['Antenna']:
+                        # calculate belt speed
+                        if first_timestamp:
+                            period = (self.stime(row['TimeStamp']) - first_timestamp).total_seconds()
+                            sp = DISTANCES[int(antenna)-1] / period                    
+                        first_timestamp = self.stime(row['TimeStamp'])
+                        # calculate # of cycles
+                        if antenna > row['Antenna']:
+                            self.num_cycles +=1 #counting the number of frames
+                        antenna = row['Antenna']
                 except:
                     pass
-                # get min and max range of tension
-                if min_y > self.rten(row['Ten']):
-                    min_y = self.rten(row['Ten'])
-                elif max_y < self.rten(row['Ten']):
-                    max_y = self.rten(row['Ten'])
-
-                if antenna != row['Antenna']:
-                    # calculate belt speed
-                    if first_timestamp:
-                        period = (self.stime(row['TimeStamp']) - first_timestamp).total_seconds()
-                        sp = DISTANCES[int(antenna)-1] / period                    
-                    first_timestamp = self.stime(row['TimeStamp'])
-                    # calculate # of cycles
-                    if antenna > row['Antenna']:
-                        self.num_cycles +=1 #counting the number of frames
-                    antenna = row['Antenna']
 
             f_input.close()
-            
+            # min_y = max(0, min_y)
+            # max_y = min(50, max_y)
+
         # Drop any data points more than TIME_WINDOW mins older than the last entry
         for i in range(1, 100):
             try:
@@ -159,9 +162,7 @@ class Anim():
         self.tx_overdrive.set_text("Overdrive\n   ---------")
         self.tx_cycles.set_text("Cyles\n {cyles}".format(cyles=self.num_cycles)) 
         self.tx_drum.set_text("Drum Speed\n {}".format('   -----------') )
-        #Todo: how do you calculate this?
-        self.tx_belt.set_text("Belt Speed\n {sp:.2f} (ft/s)".format(sp=sp) )
-        #Todo: setting the limits correctly, depending on the user's need
+        self.tx_belt.set_text("Belt Speed\n {sp:.2f} (ft/s)".format(sp=sp) )        
         self.ax.set_ylim([int(min_y)-3, int(max_y)+3])     
         self.ax.set_xlim([matplotlib.dates.date2num(not_before), matplotlib.dates.date2num(latest_dt)])
         #Update the canvas
